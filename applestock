@@ -1,0 +1,69 @@
+import pandas as pd
+apple = pd.read_csv("AAPL2.csv")
+print(apple.head())
+apple.describe
+print("training days =",apple.shape)
+import matplotlib.pyplot as plt
+import seaborn as sns
+sns.set()
+plt.figure(figsize=(10, 4))
+plt.title("Apple's Stock Price")
+plt.xlabel("Days")
+plt.ylabel("Close Price USD ($)")
+plt.plot(apple["Close"])
+plt.show()
+apple = apple[["Close"]]
+print(apple.head())
+futureDays = 25
+apple["Prediction"] = apple[["Close"]].shift(-futureDays)
+print(apple.head())
+print(apple.tail())
+import numpy as np
+x = np.array(apple.drop(columns=["Prediction"]))[:-futureDays]
+print(x)
+y = np.array(apple["Prediction"])[:-futureDays]
+print(y)
+from sklearn.model_selection import train_test_split
+xtrain, xtest, ytrain, ytest = train_test_split(x, y, test_size=0.25)
+from sklearn.tree import DecisionTreeRegressor
+tree = DecisionTreeRegressor().fit(xtrain, ytrain)
+
+# creating the Linear Regression model
+from sklearn.linear_model import LinearRegression
+linear = LinearRegression().fit(xtrain, ytrain)
+xfuture = apple.drop(columns=["Prediction"])[:-futureDays]
+xfuture = xfuture.tail(futureDays)
+xfuture = np.array(xfuture)
+print(xfuture)
+treePrediction = tree.predict(xfuture)
+print("Decision Tree prediction =",treePrediction)
+linearPrediction = linear.predict(xfuture)
+print("Linear regression Prediction =",linearPrediction)
+predictions = treePrediction
+valid = apple[x.shape[0]:]
+valid["Predictions"] = predictions
+plt.figure(figsize=(10, 6))
+plt.title("Apple's Stock Price Prediction Model(Decision Tree Regressor Model)")
+plt.xlabel("Days")
+plt.ylabel("Close Price USD ($)")
+plt.plot(apple["Close"])
+plt.plot(valid[["Close", "Predictions"]])
+plt.legend(["Original", "Valid", "Predictions"])
+plt.show()
+predictions = treePrediction
+valid = apple[x.shape[0]:]
+valid.loc[:, "Predictions"] = predictions  # Use .loc[] to modify the original DataFrame
+predictions = treePrediction
+valid = apple[x.shape[0]:].copy()  # Create a copy of the DataFrame
+valid.loc[:, "Predictions"] = predictions  # Use .loc[] to modify the copy
+plt.figure(figsize=(10, 6))
+plt.title("Apple's Stock Price Prediction Model(Decision Tree Regressor Model)")
+plt.xlabel("Days")
+plt.ylabel("Close Price USD ($)")
+plt.plot(apple["Close"])
+plt.plot(valid[["Close", "Predictions"]])
+plt.legend(["Original", "Valid", "Predictions"])
+plt.show()
+
+
+
